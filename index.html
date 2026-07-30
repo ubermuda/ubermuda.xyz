@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ubermuda</title>
+<meta name="description" content="ubermuda — personal site.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c0d;
+    --fg: #e8e6e3;
+    --mut: #7a7873;
+    --line: #26262a;
+    --acc: #7fd1a8;
+  }
+  [data-theme="light"] {
+    --bg: #f6f6f4;
+    --fg: #17181a;
+    --mut: #6d6f6c;
+    --line: #dededa;
+    --acc: #1f7a52;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
+  }
+  a { color: inherit; text-decoration: none; }
+  main {
+    min-height: 100svh;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(24px, 6vh, 56px) 64px;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: clamp(20px, 5vh, 48px);
+    animation: fadeIn .5s ease both;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--mut);
+  }
+  #theme {
+    font: inherit;
+    font-size: 13px;
+    color: var(--mut);
+    background: none;
+    border: 1px solid var(--line);
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: color .2s, border-color .2s;
+  }
+  #theme:hover { color: var(--acc); border-color: var(--acc); }
+  .intro { align-self: center; animation: fadeUp .6s .05s ease both; }
+  .prompt { font-size: 13px; color: var(--acc); margin-bottom: 20px; }
+  h1 {
+    font-size: clamp(38px, 8vw, 64px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0 0 24px;
+  }
+  h1 span { color: var(--acc); }
+  .intro p {
+    font-size: 18px;
+    line-height: 1.65;
+    max-width: 640px;
+    margin: 0;
+    color: var(--mut);
+  }
+  nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+    font-size: 16px;
+    animation: fadeUp .6s .15s ease both;
+  }
+  nav a {
+    display: flex;
+    gap: 20px;
+    padding: 9px 8px;
+    margin: 0 -8px;
+    transition: background .15s, color .15s;
+  }
+  nav a b {
+    width: 100px;
+    flex: none;
+    font-weight: 400;
+    color: var(--mut);
+    transition: color .15s;
+  }
+  nav a:hover { background: var(--acc); color: var(--bg); }
+  nav a:hover b { color: var(--bg); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @media (max-width: 640px) {
+    main { padding: clamp(24px, 5vh, 32px) 24px; }
+    nav a { gap: 12px; }
+    nav a b { width: 78px; font-size: 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <span>~/ubermuda.xyz</span>
+    <button id="theme" type="button" aria-label="Toggle colour theme">Light</button>
+  </header>
+
+  <div class="intro">
+    <div class="prompt">$ whoami</div>
+    <h1>ubermuda<span>_</span></h1>
+    <p>Building something. More soon.</p>
+  </div>
+
+  <nav>
+    <a href="https://x.com/ubermuda"><b>[x]</b><span>@ubermuda</span></a>
+    <a href="https://bsky.app/profile/ubermuda.xyz"><b>[bluesky]</b><span>@ubermuda.xyz</span></a>
+    <a href="https://github.com/ubermuda"><b>[github]</b><span>@ubermuda</span></a>
+    <a href="mailto:hey@ubermuda.xyz"><b>[mail]</b><span>hey@ubermuda.xyz</span></a>
+  </nav>
+</main>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('theme');
+    var saved = null;
+    try { saved = localStorage.getItem('ubermuda-theme'); } catch (e) {}
+    if (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) saved = 'light';
+    if (saved) root.setAttribute('data-theme', saved);
+    function sync() { btn.textContent = root.getAttribute('data-theme') === 'dark' ? 'Light' : 'Dark'; }
+    sync();
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('ubermuda-theme', next); } catch (e) {}
+      sync();
+    });
+  })();
+</script>
+</body>
+</html>
