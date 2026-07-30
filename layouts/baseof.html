@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="{{ site.Language.Lang | default "en" }}" data-theme="dark">
+{{ partial "head.html" . }}
+<body>
+<main>
+  {{ partial "header.html" . }}
+  {{ block "main" . }}{{ end }}
+  {{ block "foot" . }}{{ partial "links.html" . }}{{ end }}
+</main>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('theme');
+    var saved = null;
+    try { saved = localStorage.getItem('ubermuda-theme'); } catch (e) {}
+    if (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) saved = 'light';
+    if (saved) root.setAttribute('data-theme', saved);
+    function sync() { btn.textContent = root.getAttribute('data-theme') === 'dark' ? 'Light' : 'Dark'; }
+    sync();
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('ubermuda-theme', next); } catch (e) {}
+      sync();
+    });
+  })();
+</script>
+</body>
+</html>
