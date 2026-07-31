@@ -1,0 +1,8 @@
+<header>
+  {{ if .IsHome }}
+    <span>~/ubermuda.xyz</span>
+  {{ else }}
+    <a href="{{ "/" | relURL }}">~/ubermuda.xyz</a>
+  {{ end }}
+  <button id="theme" type="button" aria-label="Toggle colour theme">Light</button>
+</header>

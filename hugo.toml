@@ -1,0 +1,32 @@
+baseURL = 'https://ubermuda.xyz/'
+locale = 'en-us'
+title = 'ubermuda'
+enableRobotsTXT = true
+disableKinds = ['taxonomy', 'term']
+
+[markup.highlight]
+noClasses = false
+
+[params]
+description = 'ubermuda — personal site.'
+prompt = '$ whoami'
+
+[[params.links]]
+label = 'x'
+text = '@ubermuda'
+url = 'https://x.com/ubermuda'
+
+[[params.links]]
+label = 'bluesky'
+text = '@ubermuda.xyz'
+url = 'https://bsky.app/profile/ubermuda.xyz'
+
+[[params.links]]
+label = 'github'
+text = '@ubermuda'
+url = 'https://github.com/ubermuda'
+
+[[params.links]]
+label = 'mail'
+text = 'hey@ubermuda.xyz'
+url = 'mailto:hey@ubermuda.xyz'

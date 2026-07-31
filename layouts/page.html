@@ -1,0 +1,16 @@
+{{ define "main" }}
+  <article class="content">
+    <h1>{{ .Title }}</h1>
+    <div class="meta">
+      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 January 2006" }}</time>
+      {{ with .ReadingTime }} · {{ . }} min read{{ end }}
+    </div>
+    <div class="prose">{{ .Content }}</div>
+  </article>
+{{ end }}
+
+{{ define "foot" }}
+  <div class="rows">
+    <a href="{{ "/posts/" | relURL }}"><b>[back]</b><span>all posts</span></a>
+  </div>
+{{ end }}

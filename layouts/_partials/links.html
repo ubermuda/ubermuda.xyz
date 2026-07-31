@@ -1,0 +1,5 @@
+<nav>
+  {{ range site.Params.links }}
+    <a href="{{ .url }}"><b>[{{ .label }}]</b><span>{{ .text }}</span></a>
+  {{ end }}
+</nav>
