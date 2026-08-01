@@ -1,0 +1,7 @@
+<div class="rows">
+  <p class="rows-lead">Thoughts? Feedback? Get into the conversation:</p>
+  <a href="mailto:{{ site.Params.email }}?subject={{ .Title }}"><b>[mail]</b><span>{{ site.Params.email }}</span></a>
+  {{ with .Params.threadBluesky }}<a href="{{ . }}"><b>[bluesky]</b><span>discuss this post</span></a>{{ end }}
+  {{ with .Params.threadX }}<a href="{{ . }}"><b>[x]</b><span>discuss this post</span></a>{{ end }}
+  <a href="{{ "/posts/" | relURL }}"><b>[back]</b><span>all posts</span></a>
+</div>

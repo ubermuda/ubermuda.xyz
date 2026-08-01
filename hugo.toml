@@ -10,6 +10,7 @@ noClasses = false
 [params]
 description = 'ubermuda — personal site.'
 prompt = '$ whoami'
+email = 'hey@ubermuda.xyz'
 
 [[params.links]]
 label = 'x'

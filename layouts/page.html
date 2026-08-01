@@ -10,7 +10,5 @@
 {{ end }}
 
 {{ define "foot" }}
-  <div class="rows">
-    <a href="{{ "/posts/" | relURL }}"><b>[back]</b><span>all posts</span></a>
-  </div>
+  {{ partial "post-footer.html" . }}
 {{ end }}
