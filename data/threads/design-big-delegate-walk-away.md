@@ -1,0 +1,15 @@
+Companion thread for post 1. One numbered entry per tweet, in order.
+
+1. I stopped babysitting Claude and started trusting it, the way you trust someone you delegate to. Wrote up how I actually build now: https://ubermuda.xyz/posts/design-big-delegate-walk-away/
+
+2. It wasn't a prompt trick, the work just moved. It's not in the typing anymore, it's in the brief. I design the feature with Claude before any code exists, until the plan is something I'd be comfortable handing to a competent coworker.
+
+3. Half the value is being forced to say out loud what I want. The other half is saying no. It throws way more ideas at me than I'd have had alone, and rejecting them is how the vision gets sharp.
+
+4. Then I leave. I'm not pair-programming, I'm a manager who wrote a clear plan and went to lunch. It never comes back exactly the way I wrote it down, and that's fine. I decided up front how much drift I can live with.
+
+5. The failure mode I see everywhere: type « build feature X », watch it flail, correct it in real time. That's worse than doing it yourself. The upfront design is what lets you walk away. Skip it and you're babysitting.
+
+6. Also been running a few of these in parallel, in separate git worktrees. Still rough: a subagent inherits whatever worktree the parent session is in, not the one you launched it for, so its work lands in the wrong tree.
+
+7. The part I haven't solved is reviewing, and it's broken at both ends. The plan first, then the work that came out of it. Both times my options are « read every line » or « looks good, ship it ». Full thing: https://ubermuda.xyz/posts/design-big-delegate-walk-away/
