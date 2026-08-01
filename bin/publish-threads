@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+"""Publish a post's companion threads and link them from its front matter.
+
+    bin/publish-threads <slug>
+
+Reads the thread from data/threads/<slug>.md — a numbered markdown list, one
+entry per tweet, in order. Posts it to X and Bluesky through Postiz, waits for
+each to go live, then writes threadX and threadBluesky into the post's front
+matter and pushes. That push is what makes the post footer's thread links
+resolve, so this runs *after* the post itself is live.
+
+Needs the Postiz API key in the keychain:
+
+    security add-generic-password -s postiz-api -a "$USER" -w
+"""
+
+import json
+import re
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+API = "https://postiz.claude.zbfc.one/api/public/v1"
+CHANNELS = [
+    ("threadX", "x", "cms6qlb7d0001qk704vi5y0g1"),
+    ("threadBluesky", "bluesky", "cms6q0vap0001o26sk5gxfk3o"),
+]
+SITE = "https://ubermuda.xyz"
+
+
+def die(message):
+    sys.exit(f"publish-threads: {message}")
+
+
+def api(method, path, body=None):
+    key = subprocess.run(
+        ["security", "find-generic-password", "-s", "postiz-api", "-w"],
+        capture_output=True, text=True,
+    )
+    if key.returncode != 0:
+        die("no postiz-api key in the keychain (see the docstring)")
+
+    request = urllib.request.Request(
+        f"{API}{path}",
+        data=json.dumps(body).encode() if body else None,
+        headers={"Authorization": key.stdout.strip(), "Content-Type": "application/json"},
+        method=method,
+    )
+    try:
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as error:
+        die(f"{method} {path} returned {error.code}: {error.read().decode()[:200]}")
+
+
+def read_tweets(slug):
+    source = Path(f"data/threads/{slug}.md")
+    if not source.exists():
+        die(f"no thread at {source}")
+
+    entries = re.findall(
+        r"^\d+\.[ \t]+(.*(?:\n(?![ \t]*\d+\.|[ \t]*$).*)*)",
+        source.read_text(),
+        re.MULTILINE,
+    )
+    tweets = [" ".join(entry.split()) for entry in entries]
+    if not tweets:
+        die(f"{source} has no numbered entries")
+
+    for index, tweet in enumerate(tweets, 1):
+        if len(tweet) > 280:
+            die(f"entry {index} is {len(tweet)} characters, over the 280 limit")
+    return tweets
+
+
+def publish(platform, channel_id, tweets):
+    """Create the thread. value[0] is the post, the rest are its replies."""
+    created = api("POST", "/posts", {
+        "type": "now",
+        "shortLink": False,
+        "tags": [],
+        "posts": [{
+            "integration": {"id": channel_id},
+            "value": [{"content": f"<p>{tweet}</p>", "image": []} for tweet in tweets],
+            "settings": {"__type": platform},
+        }],
+    })
+    return created["id"]
+
+
+def await_url(post_id, attempts=30, interval=10):
+    """The create response carries no URL; releaseURL only appears once published."""
+    for _ in range(attempts):
+        for post in api("GET", "/posts"):
+            if post["id"] != post_id:
+                continue
+            if post["state"] == "PUBLISHED":
+                return post.get("releaseURL")
+            if post["state"] == "ERROR":
+                die(f"Postiz failed to publish {post_id}")
+        time.sleep(interval)
+    return None
+
+
+def main():
+    if len(sys.argv) != 2:
+        die("usage: bin/publish-threads <slug>")
+    slug = sys.argv[1]
+
+    post = Path(f"content/posts/{slug}.md")
+    if not post.exists():
+        die(f"no post at {post}")
+
+    _, matter, body = post.read_text().split("---\n", 2)
+    if "threadX:" in matter or "threadBluesky:" in matter:
+        die(f"{slug} already links its threads; nothing to do")
+
+    tweets = read_tweets(slug)
+
+    url = f"{SITE}/posts/{slug}/"
+    try:
+        urllib.request.urlopen(url).read(1)
+    except urllib.error.HTTPError:
+        die(f"{url} is not live yet — publish the post before its threads")
+
+    print(f"{slug}: {len(tweets)} entries to {', '.join(p for _, p, _ in CHANNELS)}")
+    print(f"  first: {tweets[0][:100]}")
+    if input("post now? [y/N] ").strip().lower() != "y":
+        die("aborted")
+
+    links = {}
+    for param, platform, channel_id in CHANNELS:
+        post_id = publish(platform, channel_id, tweets)
+        print(f"  {platform}: created {post_id}, waiting for it to go live")
+        links[param] = await_url(post_id) or input(f"  {platform} URL: ").strip()
+
+    matter = matter.rstrip("\n") + "\n"
+    matter += "".join(f'{param}: "{url}"\n' for param, url in links.items())
+    post.write_text(f"---\n{matter}---\n{body}")
+
+    subprocess.run(["git", "add", str(post)], check=True)
+    subprocess.run(["git", "commit", "-m", f"Link {slug} to its companion threads"], check=True)
+    subprocess.run(["git", "push"], check=True)
+    print(f"{slug}: threads linked, deploy triggered")
+
+
+if __name__ == "__main__":
+    main()
