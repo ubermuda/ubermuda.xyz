@@ -3,8 +3,8 @@
 
     bin/publish-threads <slug>
 
-Reads the thread from data/threads/<slug>.md — a numbered markdown list, one
-entry per tweet, in order. Posts it to X and Bluesky through Postiz, waits for
+Reads the thread from gtm/loupe/threads/<slug>.json — a JSON array of strings,
+one entry per tweet, in order. Posts it to X and Bluesky through Postiz, waits for
 each to go live, then writes threadX and threadBluesky into the post's front
 matter and pushes. That push is what makes the post footer's thread links
 resolve, so this runs *after* the post itself is live.
@@ -15,7 +15,6 @@ Needs the Postiz API key in the keychain:
 """
 
 import json
-import re
 import subprocess
 import sys
 import time
@@ -57,18 +56,19 @@ def api(method, path, body=None):
 
 
 def read_tweets(slug):
-    source = Path(f"data/threads/{slug}.md")
+    source = Path(f"gtm/loupe/threads/{slug}.json")
     if not source.exists():
         die(f"no thread at {source}")
 
-    entries = re.findall(
-        r"^\d+\.[ \t]+(.*(?:\n(?![ \t]*\d+\.|[ \t]*$).*)*)",
-        source.read_text(),
-        re.MULTILINE,
-    )
-    tweets = [" ".join(entry.split()) for entry in entries]
+    try:
+        tweets = json.loads(source.read_text())
+    except json.JSONDecodeError as error:
+        die(f"{source} is not valid JSON: {error}")
+
+    if not isinstance(tweets, list) or not all(isinstance(t, str) for t in tweets):
+        die(f"{source} must be a JSON array of strings")
     if not tweets:
-        die(f"{source} has no numbered entries")
+        die(f"{source} is empty")
 
     for index, tweet in enumerate(tweets, 1):
         if len(tweet) > 280:
