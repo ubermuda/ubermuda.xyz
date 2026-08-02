@@ -16,7 +16,7 @@ Needs the Postiz API key in the keychain:
 
 import json
 import subprocess
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import sys
 import time
 import urllib.error
@@ -85,7 +85,7 @@ def publish(platform, channel_id, settings, tweets):
     """
     created = api("POST", "/posts", {
         "type": "now",
-        "date": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+        "date": iso(datetime.now(timezone.utc)),
         "shortLink": False,
         "tags": [],
         "posts": [{
@@ -94,13 +94,23 @@ def publish(platform, channel_id, settings, tweets):
             "settings": {"__type": platform, **settings},
         }],
     })
-    return created["id"]
+    return created[0]["postId"]
+
+
+def iso(moment):
+    return moment.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def await_url(post_id, attempts=30, interval=10):
-    """The create response carries no URL; releaseURL only appears once published."""
+    """The create response carries no URL; releaseURL only appears once published.
+
+    Listing requires a date window and returns {"posts": [...]}, so neither the
+    range nor the unwrapping is optional.
+    """
     for _ in range(attempts):
-        for post in api("GET", "/posts"):
+        now = datetime.now(timezone.utc)
+        window = f"?startDate={iso(now - timedelta(days=1))}&endDate={iso(now + timedelta(days=1))}"
+        for post in api("GET", f"/posts{window}")["posts"]:
             if post["id"] != post_id:
                 continue
             if post["state"] == "PUBLISHED":
