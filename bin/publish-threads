@@ -2,6 +2,14 @@
 """Publish a post's companion threads and link them from its front matter.
 
     bin/publish-threads <slug>
+    bin/publish-threads --link-only <slug>
+
+--link-only skips posting. It finds threads already on Postiz for this post,
+reads their URLs, and writes them into the front matter. Use it when a run
+posted the thread and then failed before recording anything: rerunning without
+the flag would post everything a second time, because the absent threadX key
+is the only guard. Channels it cannot find are prompted for, and a blank answer
+skips that channel, since the footer renders each link independently.
 
 Reads the thread from gtm/loupe/threads/<slug>.json — a JSON array of strings,
 one entry per tweet, in order. Posts it to X and Bluesky through Postiz, waits for
@@ -121,10 +129,32 @@ def await_url(post_id, attempts=30, interval=10):
     return None
 
 
+def find_released(channel_id, needle, days=7):
+    """Locate an already-published thread by channel and by the URL in its first entry.
+
+    Matching on the post URL rather than on recency, so a run that crashed
+    weeks ago cannot pick up an unrelated post that happens to be newer.
+    """
+    now = datetime.now(timezone.utc)
+    window = f"?startDate={iso(now - timedelta(days=days))}&endDate={iso(now + timedelta(days=1))}"
+    found = [
+        post for post in api("GET", f"/posts{window}")["posts"]
+        if (post.get("integration") or {}).get("id") == channel_id
+        and needle in (post.get("content") or "")
+        and post.get("releaseURL")
+    ]
+    if len(found) > 1:
+        print(f"    {len(found)} candidates, using the most recent")
+    return found[-1]["releaseURL"] if found else None
+
+
 def main():
-    if len(sys.argv) != 2:
-        die("usage: bin/publish-threads <slug>")
-    slug = sys.argv[1]
+    flags = [a for a in sys.argv[1:] if a.startswith("-")]
+    args = [a for a in sys.argv[1:] if not a.startswith("-")]
+    link_only = "--link-only" in flags
+    if len(args) != 1 or set(flags) - {"--link-only"}:
+        die("usage: bin/publish-threads [--link-only] <slug>")
+    slug = args[0]
 
     post = Path(f"content/posts/{slug}.md")
     if not post.exists():
@@ -134,24 +164,35 @@ def main():
     if "threadX:" in matter or "threadBluesky:" in matter:
         die(f"{slug} already links its threads; nothing to do")
 
-    tweets = read_tweets(slug)
-
     url = f"{SITE}/posts/{slug}/"
-    try:
-        urllib.request.urlopen(url).read(1)
-    except urllib.error.HTTPError:
-        die(f"{url} is not live yet — publish the post before its threads")
-
-    print(f"{slug}: {len(tweets)} entries to {', '.join(c[1] for c in CHANNELS)}")
-    print(f"  first: {tweets[0][:100]}")
-    if input("post now? [y/N] ").strip().lower() != "y":
-        die("aborted")
-
     links = {}
-    for param, platform, channel_id, settings in CHANNELS:
-        post_id = publish(platform, channel_id, settings, tweets)
-        print(f"  {platform}: created {post_id}, waiting for it to go live")
-        links[param] = await_url(post_id) or input(f"  {platform} URL: ").strip()
+
+    if link_only:
+        print(f"{slug}: looking for threads already published to Postiz")
+        for param, platform, channel_id, _ in CHANNELS:
+            found = find_released(channel_id, url)
+            print(f"  {platform}: {found or 'not found'}")
+            answer = found or input(f"  {platform} URL (blank to skip): ").strip()
+            if answer:
+                links[param] = answer
+        if not links:
+            die("nothing to link")
+    else:
+        tweets = read_tweets(slug)
+        try:
+            urllib.request.urlopen(url).read(1)
+        except urllib.error.HTTPError:
+            die(f"{url} is not live yet — publish the post before its threads")
+
+        print(f"{slug}: {len(tweets)} entries to {', '.join(c[1] for c in CHANNELS)}")
+        print(f"  first: {tweets[0][:100]}")
+        if input("post now? [y/N] ").strip().lower() != "y":
+            die("aborted")
+
+        for param, platform, channel_id, settings in CHANNELS:
+            post_id = publish(platform, channel_id, settings, tweets)
+            print(f"  {platform}: created {post_id}, waiting for it to go live")
+            links[param] = await_url(post_id) or input(f"  {platform} URL: ").strip()
 
     matter = matter.rstrip("\n") + "\n"
     matter += "".join(f'{param}: "{url}"\n' for param, url in links.items())
