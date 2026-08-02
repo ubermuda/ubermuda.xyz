@@ -4,3 +4,4 @@ resources/_gen/
 .serena/
 .DS_Store
 .scratch/
+.idea/
