@@ -4,6 +4,9 @@ title = 'ubermuda'
 enableRobotsTXT = true
 disableKinds = ['taxonomy', 'term']
 
+[markup.goldmark.extensions.typographer]
+disable = true
+
 [markup.highlight]
 noClasses = false
 
