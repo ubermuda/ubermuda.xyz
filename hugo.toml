@@ -12,6 +12,13 @@ description = 'ubermuda — personal site.'
 prompt = '$ whoami'
 email = 'hey@ubermuda.xyz'
 
+# Analytics. Both values must be set or nothing renders, and it only renders in
+# production builds. To stop counting your own visits, run this once in the
+# browser console on the live site: localStorage.setItem('umami.disabled', 1)
+[params.umami]
+scriptURL = 'https://cloud.umami.is/script.js'
+websiteID = '0f3b9039-5092-424e-a54a-a24fae37a237'
+
 [[params.links]]
 label = 'x'
 text = '@ubermuda'

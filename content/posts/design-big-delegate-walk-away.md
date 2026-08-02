@@ -4,6 +4,8 @@ slug: "design-big-delegate-walk-away"
 date: 2026-08-02
 draft: false
 tags: ["claude-code", "ai-agents", "workflow"]
+threadX: "https://x.com/ubermuda/status/2083934358407110955"
+threadBluesky: "https://bsky.app/profile/ubermuda.xyz/post/3ms4c6pxb7s2l"
 ---
 
 The most useful shift in how I work with Claude Code wasn't a prompt trick. It was starting to actually trust it, the way you trust someone you delegate to, instead of treating it like a fancy autocomplete.

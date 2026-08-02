@@ -148,4 +148,7 @@
     * { animation: none !important; transition: none !important; }
   }
 </style>
+{{ with site.Params.umami }}{{ if and hugo.IsProduction .scriptURL .websiteID }}
+<script defer src="{{ .scriptURL }}" data-website-id="{{ .websiteID }}" data-do-not-track="true" data-domains="{{ (urls.Parse site.BaseURL).Host }}"></script>
+{{ end }}{{ end }}
 </head>
