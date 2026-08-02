@@ -16,6 +16,7 @@ Needs the Postiz API key in the keychain:
 
 import json
 import subprocess
+from datetime import datetime, timezone
 import sys
 import time
 import urllib.error
@@ -24,8 +25,8 @@ from pathlib import Path
 
 API = "https://postiz.claude.zbfc.one/api/public/v1"
 CHANNELS = [
-    ("threadX", "x", "cms6qlb7d0001qk704vi5y0g1"),
-    ("threadBluesky", "bluesky", "cms6q0vap0001o26sk5gxfk3o"),
+    ("threadX", "x", "cms6qlb7d0001qk704vi5y0g1", {"who_can_reply_post": "everyone"}),
+    ("threadBluesky", "bluesky", "cms6q0vap0001o26sk5gxfk3o", {}),
 ]
 SITE = "https://ubermuda.xyz"
 
@@ -76,16 +77,21 @@ def read_tweets(slug):
     return tweets
 
 
-def publish(platform, channel_id, tweets):
-    """Create the thread. value[0] is the post, the rest are its replies."""
+def publish(platform, channel_id, settings, tweets):
+    """Create the thread. value[0] is the post, the rest are its replies.
+
+    `date` is documented as optional and ignored when type is "now", but the
+    API rejects the request without it.
+    """
     created = api("POST", "/posts", {
         "type": "now",
+        "date": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
         "shortLink": False,
         "tags": [],
         "posts": [{
             "integration": {"id": channel_id},
             "value": [{"content": f"<p>{tweet}</p>", "image": []} for tweet in tweets],
-            "settings": {"__type": platform},
+            "settings": {"__type": platform, **settings},
         }],
     })
     return created["id"]
@@ -126,14 +132,14 @@ def main():
     except urllib.error.HTTPError:
         die(f"{url} is not live yet — publish the post before its threads")
 
-    print(f"{slug}: {len(tweets)} entries to {', '.join(p for _, p, _ in CHANNELS)}")
+    print(f"{slug}: {len(tweets)} entries to {', '.join(c[1] for c in CHANNELS)}")
     print(f"  first: {tweets[0][:100]}")
     if input("post now? [y/N] ").strip().lower() != "y":
         die("aborted")
 
     links = {}
-    for param, platform, channel_id in CHANNELS:
-        post_id = publish(platform, channel_id, tweets)
+    for param, platform, channel_id, settings in CHANNELS:
+        post_id = publish(platform, channel_id, settings, tweets)
         print(f"  {platform}: created {post_id}, waiting for it to go live")
         links[param] = await_url(post_id) or input(f"  {platform} URL: ").strip()
 
