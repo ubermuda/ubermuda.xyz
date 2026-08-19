@@ -4,6 +4,8 @@ slug: "vibecode-a-stack-you-understand"
 date: 2026-08-19
 draft: false
 tags: ["ai-agents", "vibecoding", "stack", "workflow"]
+threadX: "https://x.com/ubermuda/status/2090082088951087110"
+threadBluesky: "https://bsky.app/profile/ubermuda.xyz/post/3mtgwofvkh22z"
 ---
 
 The most useful thing I learned building with AI this year is slightly counterintuitive: vibecode on a stack you understand. Not the one the model supposedly writes best. The one *you* know cold.
