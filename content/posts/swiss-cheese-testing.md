@@ -4,6 +4,8 @@ slug: "swiss-cheese-testing"
 date: 2026-08-26
 draft: false
 tags: ["ai-agents", "testing", "guardrails", "workflow"]
+threadX: "https://x.com/ubermuda/status/2092710021570170883"
+threadBluesky: "https://bsky.app/profile/ubermuda.xyz/post/3mtz66td3bc2e"
 ---
 
 I mostly don't read the implementation anymore. The design is where the work happens, and if the brief was good the code that comes back is usually fine.
