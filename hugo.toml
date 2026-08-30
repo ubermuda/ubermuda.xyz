@@ -20,6 +20,11 @@ scriptURL = 'https://cloud.umami.is/script.js'
 websiteID = '0f3b9039-5092-424e-a54a-a24fae37a237'
 
 [[params.links]]
+label = 'loupe'
+text = 'loupe.ac'
+url = 'https://loupe.ac/'
+
+[[params.links]]
 label = 'x'
 text = '@ubermuda'
 url = 'https://x.com/ubermuda'
